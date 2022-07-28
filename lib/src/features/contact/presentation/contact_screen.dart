@@ -1,4 +1,5 @@
 import 'package:azlistview/azlistview.dart';
+import 'package:contactsss/src/features/contact/model/contact_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:contactsss/src/features/contact/bloc/contact_bloc.dart';
@@ -25,6 +26,8 @@ class ContactScreen extends StatelessWidget {
       ),
       body: BlocBuilder<ContactBloc, ContactState>(builder: (context, state) {
         if (state is ContactStateLoaded) {
+          //SuspensionUtil.sortListBySuspensionTag(state.contacts);
+          SuspensionUtil.setShowSuspensionStatus(state.contacts);
           return AzListView(
             data: state.contacts,
             itemCount: state.contacts.length,
@@ -32,19 +35,40 @@ class ContactScreen extends StatelessWidget {
               final item = state.contacts[index];
               //String xd = state.contacts![index].contact.phones.first.number;
               //print("XD" + item.contact.phones.first.number);
-              return ListTile(
-                  title: Text(
-                    item.contact.displayName,
-                    //state.contacts[index].contact.displayName,
+              final tag = item.getSuspensionTag();
+              final offstage = !item.isShowSuspension;
+              return Column(
+                children: [
+                  Offstage(
+                    offstage: offstage,
+                    child: buildHeader(tag),
                   ),
-                  subtitle: Text(
-                      state.contacts[index].contact.id) //<-- kalau ini bisa
-                  //Text(state.contacts[index].number)
-                  //Text(state.contacts[index].contact.phones.first.number[index])
-                  //item.contact.phones.first.normalizedNumber)
-                  //Text(item.contact.phones.first.number)
-                  //Text("bruh"),
-                  );
+                  ListTile(
+                      onTap: () {
+                        final snackBar = SnackBar(
+                            content: Text(
+                          "Name Clicked : ${item.contact.displayName}",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 20),
+                        ));
+                        ScaffoldMessenger.of(context)
+                          ..removeCurrentSnackBar()
+                          ..showSnackBar(snackBar);
+                      },
+                      title: Text(
+                        item.contact.displayName,
+                        //state.contacts[index].contact.displayName,
+                      ),
+                      subtitle: Text(
+                          state.contacts[index].contact.id) //<-- kalau ini bisa
+                      //Text(state.contacts[index].number)
+                      //Text(state.contacts[index].contact.phones.first.number[index])
+                      //item.contact.phones.first.normalizedNumber)
+                      //Text(item.contact.phones.first.number)
+                      //Text("bruh"),
+                      ),
+                ],
+              );
             }),
           );
         } else if (state is ContactStateLoading) {
@@ -60,4 +84,19 @@ class ContactScreen extends StatelessWidget {
       }),
     );
   }
+}
+
+Widget buildHeader(String tag) {
+  return Container(
+    margin: EdgeInsets.only(right: 15),
+    padding: EdgeInsets.only(left: 16),
+    color: Colors.grey.shade300,
+    height: 40,
+    alignment: Alignment.centerLeft,
+    child: Text(
+      tag,
+      softWrap: false,
+      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    ),
+  );
 }
